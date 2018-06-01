@@ -5,10 +5,14 @@ import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.support.annotation.NonNull;
+import android.support.design.widget.TextInputEditText;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
+import android.util.Log;
 import android.view.Display;
 
 import com.facebook.AccessToken;
@@ -17,10 +21,17 @@ import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.npluslabs.meetingmates.R;
 import android.view.View;
 import android.widget.Button;
@@ -28,21 +39,36 @@ import android.widget.ImageView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.request.target.ImageViewTarget;
+import com.orhanobut.logger.AndroidLogAdapter;
+import com.orhanobut.logger.Logger;
 
+import com.facebook.FacebookSdk;
+import com.facebook.appevents.AppEventsLogger;
+
+import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Currency;
 import java.util.List;
 import butterknife.ButterKnife;
 import butterknife.BindViews;
 import android.support.annotation.ColorRes;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity {
     ImageView fbLogin;
+    VerticalTextView loginButton;
     @BindViews(value = {R.id.logo,R.id.facebook_button,R.id.second,R.id.last})
     protected List<ImageView> sharedElements;
     private CallbackManager callbackManager;
     private TextView textView;
-
+    String emailString,passwordString;
+    TextInputEditText email,password;
+    private String TAG = this.getLocalClassName();
+    private FirebaseAuth mAuth;
     private static final String EMAIL = "email";
     private AccessTokenTracker accessTokenTracker;
     private ProfileTracker profileTracker;
@@ -51,13 +77,55 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
+        Logger.addLogAdapter(new AndroidLogAdapter());
         callbackManager = CallbackManager.Factory.create();
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        loginButton = findViewById(R.id.caption);
+        email = findViewById(R.id.email_input_edit);
+        password = findViewById(R.id.password_input_edit);
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                emailString = email.getText().toString();
+                passwordString = password.getText().toString();
+                if (emailString.length() != 0 && passwordString.length() != 0) {
+                    mAuth.signInWithEmailAndPassword(emailString, passwordString)
+                            .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+                                    if (task.isSuccessful()) {
+                                        // Sign in success, update UI with the signed-in user's information
+                                        Log.d(TAG, "signInWithEmail:success");
+                                        FirebaseUser user = mAuth.getCurrentUser();
+                                        Logger.i("user-> " + user.getEmail());
+                                    } else {
+                                        // If sign in fails, display a message to the user.
+                                        Log.w(TAG, "signInWithEmail:failure", task.getException());
+                                        Toast.makeText(LoginActivity.this, "Authentication failed.",
+                                                Toast.LENGTH_SHORT).show();
+                                        Logger.i("Error in login");
+                                    }
+
+                                    // ...
+                                }
+                            });
+                }
+                else {
+                    Toast.makeText(LoginActivity.this,"Enter Email/Password",Toast.LENGTH_LONG).show();
+                }
+            }
+
+        });
+        mAuth = FirebaseAuth.getInstance();
+        AppEventsLogger.activateApp(this);
+//        logger.logPurchase(BigDecimal.valueOf(4.32), Currency.getInstance("USD"));
         LoginManager.getInstance().registerCallback(
                 callbackManager,
                 new FacebookCallback < LoginResult > () {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
                         // Handle success
+                        Logger.i("loginResult-> "+loginResult.toString());
                     }
 
                     @Override
@@ -79,9 +147,7 @@ public class LoginActivity extends AppCompatActivity {
                 );
             }
         });
-//        fbLogin.setReadPermissions("user_friends");
-//        fbLogin.setFragment(this);
-//        fbLogin.registerCallback(callbackManager, callback);
+
         FacebookSdk.sdkInitialize(getApplicationContext());
 
         callbackManager = CallbackManager.Factory.create();
@@ -150,8 +216,15 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         public void onSuccess(LoginResult loginResult) {
             AccessToken accessToken = loginResult.getAccessToken();
-            Profile profile = Profile.getCurrentProfile();
-            displayMessage(profile);
+            if(accessToken!=null)
+            {
+                Log.i("RequestData()-> ", "Working");
+                RequestData();
+                Profile profile = Profile.getCurrentProfile();
+                Logger.i(profile.getId());
+                Logger.i("FacebookCallback-> "+loginResult.toString());
+//                displayMessage(profile);
+            }
         }
 
         @Override
@@ -174,7 +247,9 @@ public class LoginActivity extends AppCompatActivity {
 
     private void displayMessage(Profile profile){
         if(profile != null){
-            textView.setText(profile.getName());
+        Logger.i("Profile Name->" + profile.getName());
+        Logger.i("Info " + profile.getProfilePictureUri(400,400));
+//            textView.setText(profile.getName());
         }
     }
 
@@ -190,6 +265,44 @@ public class LoginActivity extends AppCompatActivity {
         super.onResume();
         Profile profile = Profile.getCurrentProfile();
         displayMessage(profile);
+    }
+
+
+    public void RequestData(){
+        Log.i("RequestData()-> ", "Working");
+        GraphRequest request = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+            @Override
+            public void onCompleted(JSONObject object, GraphResponse response) {
+
+                JSONObject json = response.getJSONObject();
+                System.out.println("Json data :"+json);
+                try {
+                    if(json != null){
+                        Logger.json(json.toString());
+                        String text = "<b>Name :</b> "+json.getString("name")+"<br><br><b>Email :</b> "+json.getString("email")+"<br><br><b>Profile link :</b> "+json.getString("link");
+//                        details_txt.setText();
+                        Logger.i("data-> " + Html.fromHtml(text));
+//                        profile.setProfileId(json.getString("id"));
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id,name,link,email,picture");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        Logger.i("User Info-> " + currentUser.getEmail());
+//        updateUI(currentUser);
     }
 }
 
