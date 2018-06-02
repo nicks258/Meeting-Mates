@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "591870434876",
+    "firebase_url": "https://open-barter-network.firebaseio.com",
+    "project_id": "open-barter-network",
+    "storage_bucket": "open-barter-network.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:591870434876:android:36ffc3ae1c6c9008",
+        "android_client_info": {
+          "package_name": "com.npluslabs.meetingmates"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "591870434876-rhnj9j9tn77ajc53plj0u408amhn9de1.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "591870434876-rhnj9j9tn77ajc53plj0u408amhn9de1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwmLg94lj-dnVqo-DNVg00y7b8Qokjiio"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

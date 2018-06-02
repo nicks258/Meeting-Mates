@@ -5,7 +5,9 @@ import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -27,11 +29,20 @@ import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.ActionCodeSettings;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.npluslabs.meetingmates.R;
 import android.view.View;
 import android.widget.Button;
@@ -59,73 +70,94 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity {
-    ImageView fbLogin;
-    VerticalTextView loginButton;
-    @BindViews(value = {R.id.logo,R.id.facebook_button,R.id.second,R.id.last})
+    ImageView fbLogin, googleLogin;
+    //    VerticalTextView loginButton;
+    @BindViews(value = {R.id.logo, R.id.facebook_button, R.id.second, R.id.last})
     protected List<ImageView> sharedElements;
     private CallbackManager callbackManager;
     private TextView textView;
-    String emailString,passwordString;
-    TextInputEditText email,password;
-    private String TAG = this.getLocalClassName();
+    String emailString, passwordString;
+    TextInputEditText email, password;
+    private String TAG = "LoginActivity";
     private FirebaseAuth mAuth;
+    private GoogleSignInClient mGoogleSignInClient;
     private static final String EMAIL = "email";
     private AccessTokenTracker accessTokenTracker;
     private ProfileTracker profileTracker;
+    private static final int RC_SIGN_IN = 9001;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
         Logger.addLogAdapter(new AndroidLogAdapter());
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+
+        // [START initialize_auth]
+
+        mAuth = FirebaseAuth.getInstance();
         callbackManager = CallbackManager.Factory.create();
         FacebookSdk.sdkInitialize(getApplicationContext());
-        loginButton = findViewById(R.id.caption);
+//        loginButton = findViewById(R.id.caption);
         email = findViewById(R.id.email_input_edit);
         password = findViewById(R.id.password_input_edit);
-        loginButton.setOnClickListener(new View.OnClickListener() {
+        googleLogin = findViewById(R.id.last);
+        googleLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                emailString = email.getText().toString();
-                passwordString = password.getText().toString();
-                if (emailString.length() != 0 && passwordString.length() != 0) {
-                    mAuth.signInWithEmailAndPassword(emailString, passwordString)
-                            .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
-                                @Override
-                                public void onComplete(@NonNull Task<AuthResult> task) {
-                                    if (task.isSuccessful()) {
-                                        // Sign in success, update UI with the signed-in user's information
-                                        Log.d(TAG, "signInWithEmail:success");
-                                        FirebaseUser user = mAuth.getCurrentUser();
-                                        Logger.i("user-> " + user.getEmail());
-                                    } else {
-                                        // If sign in fails, display a message to the user.
-                                        Log.w(TAG, "signInWithEmail:failure", task.getException());
-                                        Toast.makeText(LoginActivity.this, "Authentication failed.",
-                                                Toast.LENGTH_SHORT).show();
-                                        Logger.i("Error in login");
-                                    }
-
-                                    // ...
-                                }
-                            });
-                }
-                else {
-                    Toast.makeText(LoginActivity.this,"Enter Email/Password",Toast.LENGTH_LONG).show();
-                }
+                Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+                startActivityForResult(signInIntent, RC_SIGN_IN);
             }
-
         });
+//        loginButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                emailString = email.getText().toString();
+//                passwordString = password.getText().toString();
+//                if (emailString.length() != 0 && passwordString.length() != 0) {
+//                    mAuth.signInWithEmailAndPassword(emailString, passwordString)
+//                            .addOnCompleteListener(LoginActivity.this, new OnCompleteListener<AuthResult>() {
+//                                @Override
+//                                public void onComplete(@NonNull Task<AuthResult> task) {
+//                                    if (task.isSuccessful()) {
+//                                        // Sign in success, update UI with the signed-in user's information
+//                                        Log.d(TAG, "signInWithEmail:success");
+//                                        FirebaseUser user = mAuth.getCurrentUser();
+//                                        Logger.i("user-> " + user.getEmail());
+//                                        displayInformation();
+//                                    } else {
+//                                        // If sign in fails, display a message to the user.
+//                                        Log.w(TAG, "signInWithEmail:failure", task.getException());
+//                                        Toast.makeText(LoginActivity.this, "Authentication failed.",
+//                                                Toast.LENGTH_SHORT).show();
+//                                        Logger.i("Error in login");
+//                                    }
+//
+//                                    // ...
+//                                }
+//                            });
+//                }
+//                else {
+//                    Toast.makeText(LoginActivity.this,"Enter Email/Password",Toast.LENGTH_LONG).show();
+//                }
+//            }
+//
+//        });
         mAuth = FirebaseAuth.getInstance();
         AppEventsLogger.activateApp(this);
 //        logger.logPurchase(BigDecimal.valueOf(4.32), Currency.getInstance("USD"));
         LoginManager.getInstance().registerCallback(
                 callbackManager,
-                new FacebookCallback < LoginResult > () {
+                new FacebookCallback<LoginResult>() {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
                         // Handle success
-                        Logger.i("loginResult-> "+loginResult.toString());
+                        Logger.i("loginResult-> " + loginResult.toString());
                     }
 
                     @Override
@@ -152,7 +184,7 @@ public class LoginActivity extends AppCompatActivity {
 
         callbackManager = CallbackManager.Factory.create();
 
-        accessTokenTracker= new AccessTokenTracker() {
+        accessTokenTracker = new AccessTokenTracker() {
             @Override
             protected void onCurrentAccessTokenChanged(AccessToken oldToken, AccessToken newToken) {
 
@@ -168,36 +200,36 @@ public class LoginActivity extends AppCompatActivity {
 
         accessTokenTracker.startTracking();
         profileTracker.startTracking();
-        final AnimatedViewPager pager= ButterKnife.findById(this,R.id.pager);
-        final ImageView background=ButterKnife.findById(this,R.id.scrolling_background);
-        int[] screenSize=screenSize();
+        final AnimatedViewPager pager = ButterKnife.findById(this, R.id.pager);
+        final ImageView background = ButterKnife.findById(this, R.id.scrolling_background);
+        int[] screenSize = screenSize();
 
-        for(ImageView element:sharedElements){
-            @ColorRes int color=element.getId()!=R.id.logo?R.color.white_transparent:R.color.color_logo_log_in;
-            DrawableCompat.setTint(element.getDrawable(), ContextCompat.getColor(this,color));
+        for (ImageView element : sharedElements) {
+            @ColorRes int color = element.getId() != R.id.logo ? R.color.white_transparent : R.color.color_logo_log_in;
+            DrawableCompat.setTint(element.getDrawable(), ContextCompat.getColor(this, color));
         }
         //load a very big image and resize it, so it fits our needs
         Glide.with(this)
                 .load(R.drawable.busy)
                 .asBitmap()
-                .override(screenSize[0]*2,screenSize[1])
+                .override(screenSize[0] * 2, screenSize[1])
                 .diskCacheStrategy(DiskCacheStrategy.RESULT)
                 .into(new ImageViewTarget<Bitmap>(background) {
                     @Override
                     protected void setResource(Bitmap resource) {
                         background.setImageBitmap(resource);
-                        background.post(()->{
+                        background.post(() -> {
                             //we need to scroll to the very left edge of the image
                             //fire the scale animation
-                            background.scrollTo(-background.getWidth()/2,0);
-                            ObjectAnimator xAnimator=ObjectAnimator.ofFloat(background,View.SCALE_X,4f,background.getScaleX());
-                            ObjectAnimator yAnimator=ObjectAnimator.ofFloat(background,View.SCALE_Y,4f,background.getScaleY());
-                            AnimatorSet set=new AnimatorSet();
-                            set.playTogether(xAnimator,yAnimator);
+                            background.scrollTo(-background.getWidth() / 2, 0);
+                            ObjectAnimator xAnimator = ObjectAnimator.ofFloat(background, View.SCALE_X, 4f, background.getScaleX());
+                            ObjectAnimator yAnimator = ObjectAnimator.ofFloat(background, View.SCALE_Y, 4f, background.getScaleY());
+                            AnimatorSet set = new AnimatorSet();
+                            set.playTogether(xAnimator, yAnimator);
                             set.setDuration(getResources().getInteger(R.integer.duration));
                             set.start();
                         });
-                        pager.post(()->{
+                        pager.post(() -> {
                             AuthAdapter adapter = new AuthAdapter(getSupportFragmentManager(), pager, background, sharedElements);
                             pager.setAdapter(adapter);
                         });
@@ -205,24 +237,23 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    private int[] screenSize(){
+    private int[] screenSize() {
         Display display = getWindowManager().getDefaultDisplay();
         Point size = new Point();
         display.getSize(size);
-        return new int[]{size.x,size.y};
+        return new int[]{size.x, size.y};
     }
 
     private FacebookCallback<LoginResult> callback = new FacebookCallback<LoginResult>() {
         @Override
         public void onSuccess(LoginResult loginResult) {
             AccessToken accessToken = loginResult.getAccessToken();
-            if(accessToken!=null)
-            {
+            if (accessToken != null) {
                 Log.i("RequestData()-> ", "Working");
                 RequestData();
                 Profile profile = Profile.getCurrentProfile();
                 Logger.i(profile.getId());
-                Logger.i("FacebookCallback-> "+loginResult.toString());
+                Logger.i("FacebookCallback-> " + loginResult.toString());
 //                displayMessage(profile);
             }
         }
@@ -242,13 +273,27 @@ public class LoginActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                // Google Sign In was successful, authenticate with Firebase
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                firebaseAuthWithGoogle(account);
+            } catch (ApiException e) {
+                // Google Sign In failed, update UI appropriately
+                Log.w(TAG, "Google sign in failed", e);
+                // [START_EXCLUDE]
+                Logger.i("Google sign in failed");
+                // [END_EXCLUDE]
+            }
+        }
 
     }
 
-    private void displayMessage(Profile profile){
-        if(profile != null){
-        Logger.i("Profile Name->" + profile.getName());
-        Logger.i("Info " + profile.getProfilePictureUri(400,400));
+    private void displayMessage(Profile profile) {
+        if (profile != null) {
+            Logger.i("Profile Name->" + profile.getName());
+            Logger.i("Info " + profile.getProfilePictureUri(400, 400));
 //            textView.setText(profile.getName());
         }
     }
@@ -267,19 +312,28 @@ public class LoginActivity extends AppCompatActivity {
         displayMessage(profile);
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+//        FirebaseUser currentUser = mAuth.getCurrentUser();
+//        Logger.i("User Info-> " + currentUser.getEmail());
+//        updateUI(currentUser);
+    }
 
-    public void RequestData(){
+
+    public void RequestData() {
         Log.i("RequestData()-> ", "Working");
         GraphRequest request = GraphRequest.newMeRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
             @Override
             public void onCompleted(JSONObject object, GraphResponse response) {
 
                 JSONObject json = response.getJSONObject();
-                System.out.println("Json data :"+json);
+                System.out.println("Json data :" + json);
                 try {
-                    if(json != null){
+                    if (json != null) {
                         Logger.json(json.toString());
-                        String text = "<b>Name :</b> "+json.getString("name")+"<br><br><b>Email :</b> "+json.getString("email")+"<br><br><b>Profile link :</b> "+json.getString("link");
+                        String text = "<b>Name :</b> " + json.getString("name") + "<br><br><b>Email :</b> " + json.getString("email") + "<br><br><b>Profile link :</b> " + json.getString("link");
 //                        details_txt.setText();
                         Logger.i("data-> " + Html.fromHtml(text));
 //                        profile.setProfileId(json.getString("id"));
@@ -296,13 +350,58 @@ public class LoginActivity extends AppCompatActivity {
         request.executeAsync();
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        Logger.i("User Info-> " + currentUser.getEmail());
-//        updateUI(currentUser);
+
+    private void displayInformation() {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            // Name, email address, and profile photo Url
+            String name = user.getDisplayName();
+            String email = user.getEmail();
+            Uri photoUrl = user.getPhotoUrl();
+
+            // Check if user's email is verified
+            boolean emailVerified = user.isEmailVerified();
+
+            // The user's ID, unique to the Firebase project. Do NOT use this value to
+            // authenticate with your backend server, if you have one. Use
+            // FirebaseUser.getToken() instead.
+            String uid = user.getUid();
+            Logger.i("name-> " + name + " email-> " + email + " photo-> " + photoUrl + " verify -> " + emailVerified);
+        }
     }
+
+    private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+        Log.d(TAG, "firebaseAuthWithGoogle:" + acct.getId());
+        // [START_EXCLUDE silent]
+        Logger.i("Loading");
+        // [END_EXCLUDE]
+
+        AuthCredential credential = GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "signInWithCredential:success");
+                            FirebaseUser user = mAuth.getCurrentUser();
+                            Logger.i("User Info-> " + user.getEmail());
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "signInWithCredential:failure", task.getException());
+//                            Snackbar.make(findViewById(R.id.main_layout), "Authentication Failed.", Snackbar.LENGTH_SHORT).show();
+//                            updateUI(null);
+                            Logger.i("Authentication Failed.");
+                        }
+
+                        // [START_EXCLUDE]
+                        Logger.i("Loading Done");
+                        // [END_EXCLUDE]
+                    }
+                });
+    }
+
 }
+
+
 
