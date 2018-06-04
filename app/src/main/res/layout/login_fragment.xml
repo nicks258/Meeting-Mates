@@ -68,7 +68,7 @@
         app:layout_constraintRight_toRightOf="parent"/>
 
 
-    <com.npluslabs.meetingmates.loginconcept.VerticalTextView
+    <com.npluslabs.openbarter.LoginConcept.VerticalTextView
         android:id="@+id/caption"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

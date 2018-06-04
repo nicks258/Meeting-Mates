@@ -8,12 +8,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:591870434876:android:36ffc3ae1c6c9008",
+        "mobilesdk_app_id": "1:591870434876:android:664f3f6f45c9caff",
         "android_client_info": {
-          "package_name": "com.npluslabs.meetingmates"
+          "package_name": "com.npluslabs.openbarter"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "591870434876-ou10q0m96r65pehkaa6q8k5iam2be7q0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.npluslabs.openbarter",
+            "certificate_hash": "9d5254e1d3fc54b5fd775f5129c2540e6b08ccfd"
+          }
+        },
         {
           "client_id": "591870434876-rhnj9j9tn77ajc53plj0u408amhn9de1.apps.googleusercontent.com",
           "client_type": 3
@@ -33,8 +41,13 @@
           "status": 1
         },
         "appinvite_service": {
-          "status": 1,
-          "other_platform_oauth_client": []
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "591870434876-rhnj9j9tn77ajc53plj0u408amhn9de1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         },
         "ads_service": {
           "status": 2
