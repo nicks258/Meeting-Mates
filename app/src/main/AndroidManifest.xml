@@ -43,8 +43,6 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
-        <activity android:name=".LoginActivity" />
-
         <service
             android:name=".FirebaseService.FirebaseService"
             android:permission="com.google.android.c2dm.permission.SEND">

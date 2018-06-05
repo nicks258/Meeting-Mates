@@ -91,6 +91,9 @@ public class LoginActivity extends AppCompatActivity {
     private CallbackManager callbackManager;
     private TextView textView;
     private String TAG = "LoginActivity";
+    private String userEmail;
+    private String userName;
+    private String userPic;
     private Bundle rawData;
     private String host = "https://api.linkedin.com";
     private String topCardUrl =  host + "/v1/people/~:(num-connections,main-address,first-name,last-name,email-address,formatted-name,phone-numbers,public-profile-url,picture-url,picture-urls::(original))";
@@ -98,30 +101,7 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient;
     private AccessTokenTracker accessTokenTracker;
     private ProfileTracker profileTracker;
-    private FacebookCallback<LoginResult> callback = new FacebookCallback<LoginResult>() {
-        @Override
-        public void onSuccess(LoginResult loginResult) {
-            AccessToken accessToken = loginResult.getAccessToken();
-            if (accessToken != null) {
-                Log.i("RequestData()-> ", "Working");
-                RequestData();
-                Profile profile = Profile.getCurrentProfile();
-                Logger.i(profile.getId());
-                Logger.i("FacebookCallback-> " + loginResult.toString());
-//                displayMessage(profile);
-            }
-        }
 
-        @Override
-        public void onCancel() {
-
-        }
-
-        @Override
-        public void  onError(FacebookException e) {
-
-        }
-    };
 
     private static Scope buildScope() {
         return Scope.build(Scope.R_BASICPROFILE, Scope.W_SHARE,Scope.R_EMAILADDRESS);
@@ -133,6 +113,8 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
         Logger.addLogAdapter(new AndroidLogAdapter());
+        FacebookSdk.sdkInitialize(getApplicationContext());
+        AppEventsLogger.activateApp(this);
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -141,7 +123,9 @@ public class LoginActivity extends AppCompatActivity {
         rawData = new Bundle();
         mAuth = FirebaseAuth.getInstance();
         callbackManager = CallbackManager.Factory.create();
-        FacebookSdk.sdkInitialize(getApplicationContext());
+
+
+
 //        loginButton = findViewById(R.id.caption);
         email = findViewById(R.id.email_input_edit);
         password = findViewById(R.id.password_input_edit);
@@ -210,26 +194,7 @@ public class LoginActivity extends AppCompatActivity {
 //
 //        });
         mAuth = FirebaseAuth.getInstance();
-        AppEventsLogger.activateApp(this);
-//        logger.logPurchase(BigDecimal.valueOf(4.32), Currency.getInstance("USD"));
-        LoginManager.getInstance().registerCallback(
-                callbackManager,
-                new FacebookCallback<LoginResult>() {
-                    @Override
-                    public void onSuccess(LoginResult loginResult) {
-                        // Handle success
-                        Logger.i("loginResult-> " + loginResult.toString());
-                    }
 
-                    @Override
-                    public void onCancel() {
-                    }
-
-                    @Override
-                    public void onError(FacebookException exception) {
-                    }
-                }
-        );
         fbLogin = findViewById(R.id.facebook_button);
         fbLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -241,10 +206,68 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        FacebookSdk.sdkInitialize(getApplicationContext());
+//        logger.logPurchase(BigDecimal.valueOf(4.32), Currency.getInstance("USD"));
+        LoginManager.getInstance().registerCallback(callbackManager,
+                new FacebookCallback<LoginResult>() {
+                    @Override
+                    public void onSuccess(LoginResult loginResult) {
+                        Logger.i("Starttdd");
+                        setFacebookData(loginResult);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                    }
+
+                    @Override
+                    public void onError(FacebookException exception) {
+                        Logger.i("Starttdd" + exception);
+                    }
+                });
+        // Callback registration
+        LoginManager.getInstance().registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
+            @Override
+            public void onSuccess(LoginResult loginResult) {
+                Logger.i("Login Succes");
+                // App code
+                Logger.i("perffff");
+            }
+
+            @Override
+            public void onCancel() {
+                // App code
+            }
+
+            @Override
+            public void onError(FacebookException exception) {
+                Logger.i("Exxx" + exception);
+                // App code
+            }
+        });
+
 
         callbackManager = CallbackManager.Factory.create();
 
+        LoginManager.getInstance().registerCallback(callbackManager,
+                new FacebookCallback<LoginResult>() {
+                    @Override
+                    public void onSuccess(LoginResult loginResult) {
+                        // App code
+                        Logger.i("Perfect");
+                        setFacebookData(loginResult);
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        // App code
+                    }
+
+                    @Override
+                    public void onError(FacebookException exception) {
+                        // App code
+                        Logger.i("Errr" + exception);
+                    }
+                });
         accessTokenTracker = new AccessTokenTracker() {
             @Override
             protected void onCurrentAccessTokenChanged(AccessToken oldToken, AccessToken newToken) {
@@ -255,7 +278,7 @@ public class LoginActivity extends AppCompatActivity {
         profileTracker = new ProfileTracker() {
             @Override
             protected void onCurrentProfileChanged(Profile oldProfile, Profile newProfile) {
-                displayMessage(newProfile);
+                 displayMessage(newProfile);
             }
         };
 
@@ -333,6 +356,8 @@ public class LoginActivity extends AppCompatActivity {
     private void displayMessage(Profile profile) {
         if (profile != null) {
             Logger.i("Profile Name->" + profile.getName());
+//            userEmail = profile.get
+//            userName = profile.getName();
             Logger.i("Info " + profile.getProfilePictureUri(400, 400));
 //            textView.setText(profile.getName());
         }
@@ -369,11 +394,13 @@ public class LoginActivity extends AppCompatActivity {
 
                 JSONObject json = response.getJSONObject();
                 System.out.println("Json data :" + json);
+                ;
                 try {
                     if (json != null) {
                         Logger.json(json.toString());
                         String text = "<b>Name :</b> " + json.getString("name") + "<br><br><b>Email :</b> " + json.getString("email") + "<br><br><b>Profile link :</b> " + json.getString("link");
 //                        details_txt.setText();
+
                         Logger.i("data-> " + Html.fromHtml(text));
 //                        profile.setProfileId(json.getString("id"));
                     }
@@ -423,7 +450,11 @@ public class LoginActivity extends AppCompatActivity {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "signInWithCredential:success");
                             FirebaseUser user = mAuth.getCurrentUser();
-                            Logger.i("User Info-> " + user.toString() + " user -> " + user.getDisplayName() + user.toString());
+                            Logger.i("User Info-> " + user.getEmail() + " -> " + user.getProviderData() +" " + user.getPhotoUrl() + " user -> " + user.getDisplayName() + user.toString());
+                            userEmail = user.getEmail();
+                            userName = user.getDisplayName();
+                            userPic = user.getPhotoUrl().toString();
+                            userLoggedIn();
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
@@ -453,10 +484,13 @@ public class LoginActivity extends AppCompatActivity {
 
                                 try {
                                     JSONObject profileInfo = s.getResponseDataAsJson();
-                                    Log.i("Name-> " , profileInfo.getString("formattedName"));
                                     JSONObject profilePic  = profileInfo.getJSONObject("pictureUrls");
                                     JSONArray imageUrl = profilePic.getJSONArray("values");
-
+                                    Log.i("Name-> " , profileInfo.getString("formattedName"));
+                                    userName = profileInfo.getString("formattedName");
+                                    userEmail = profileInfo.getString("emailAddress");
+                                    userPic = profileInfo.getString("emailAddress");
+                                    userLoggedIn();
                                     Log.i("Image->" , imageUrl.getString(0));
                                 } catch (JSONException e) {
                                     e.printStackTrace();
@@ -492,9 +526,67 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    private void setFacebookData(final LoginResult loginResult)
+    {
+        GraphRequest request = GraphRequest.newMeRequest(
+                loginResult.getAccessToken(),
+                new GraphRequest.GraphJSONObjectCallback() {
+                    @Override
+                    public void onCompleted(JSONObject object, GraphResponse response) {
+                        // Application code
+                        try {
+                            Log.i("Response",response.toString());
+
+                            String email = response.getJSONObject().getString("email");
+                            String firstName = response.getJSONObject().getString("first_name");
+                            String lastName = response.getJSONObject().getString("last_name");
+
+                            Profile profile = Profile.getCurrentProfile();
+                            String id = profile.getId();
+                            String link = profile.getLinkUri().toString();
+                            Log.i("Link",link);
+                            if (Profile.getCurrentProfile()!=null)
+                            {
+                                Log.i("Login", "ProfilePic" + Profile.getCurrentProfile().getProfilePictureUri(200, 200));
+                            }
+                            if (object.has("friends")) {
+                                JSONObject friend = object.getJSONObject("friends");
+                                JSONArray data = friend.getJSONArray("data");
+                                for (int i=0;i<data.length();i++){
+                                    Log.i("idddd",data.getJSONObject(i).getString("id"));
+                                }
+                            }
+
+                            Log.i("Login" + "Email", email);
+                            Log.i("Login"+ "FirstName", firstName);
+                            Log.i("Login" + "LastName", lastName);
+                            userEmail = email;
+                            userName = firstName + " " + lastName;
+                            userPic = Profile.getCurrentProfile().getProfilePictureUri(200, 200).toString();
+                            userLoggedIn();
+
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id,email,first_name,last_name,gender");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
     private void mainActivityIntent(){
         Intent mainActivityIntent = new Intent(LoginActivity.this, ProfileActivity.class);
         startActivity(mainActivityIntent);
+    }
+
+    private void userLoggedIn(){
+        rawData.putString("userName",userName);
+        rawData.putString("userEmail",userEmail);
+        rawData.putString("userPic",userPic);
+
     }
 }
 
