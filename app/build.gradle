@@ -1,5 +1,19 @@
+buildscript {
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
+
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.+'
+    }
+}
 apply plugin: 'com.android.application'
 
+repositories {
+    maven { url 'https://maven.fabric.io/public' }
+}
+
+apply plugin: 'io.fabric'
 android {
     compileSdkVersion 27
     defaultConfig {
@@ -35,6 +49,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:16.0.0'
     implementation 'com.google.android.gms:play-services-auth:15.0.1'
     implementation 'com.google.firebase:firebase-messaging:17.0.0'
+    implementation 'com.android.support:support-v4:27.1.1'
     testImplementation 'junit:junit:4.12'
     compile project(':linkedin-sdk')
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
@@ -51,7 +66,13 @@ dependencies {
     implementation 'net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:2.1.0'
 
     implementation 'com.github.Q42:AndroidScrollingImageView:1.3.2'
-
+    implementation('com.crashlytics.sdk.android:crashlytics:2.9.3@aar') {
+        transitive = true;
+    }
+    implementation('com.crashlytics.sdk.android:answers:1.4.2@aar') {
+        transitive = true;
+    }
+    implementation 'com.gordonwong:material-sheet-fab:1.2.1'
 }
 
 apply plugin: 'com.google.gms.google-services'

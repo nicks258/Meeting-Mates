@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Meeting Mates</string>
+    <string name="app_name">Open Barter</string>
     <string name="facebook_app_id">2092004411037910</string>
     <string name="fb_login_protocol_scheme">fb2092004411037910</string>
     <string name="sign_up_label">Sign Up</string>
@@ -9,4 +9,16 @@
     <string name="email_hint">Email</string>
     <string name="confirm_hint">Confirm Password</string>
     <string name="title_activity_profile">ProfileActivity</string>
+    <string name="sample_email">Wiliam@gmail.com</string>
+    <string name="sample_contact">+266 225 225</string>
+    <string name="sample_name">Wiliam Snoe</string>
+    <string name="invite_a_friend">Invite A Friend</string>
+    <string name="chat_with_a_friend">Chat with a friend</string>
+    <string name="what_can_you_offer">What can you offer?</string>
+    <string name="your_karma_points_displayed_here">Your karma points displayed here</string>
+    <string name="want_help">Want Help</string>
+    <string name="offer_something">Offer Something</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

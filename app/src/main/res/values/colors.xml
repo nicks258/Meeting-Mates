@@ -15,8 +15,9 @@
     <color name="endblue">#0bcce6</color>
     <color name="color_label">#ededed</color>
     <color name="white_transparent">#fafafa</color>
-
+    <color name="white">#fff</color>
     <color name="color_input_hint">#FFF</color>
     <color name="color_text_highlight">#fafafa</color>
     <color name="color_text">#FFF</color>
+    <color name="black">#000</color>
 </resources>

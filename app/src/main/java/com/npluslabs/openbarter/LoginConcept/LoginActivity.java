@@ -16,9 +16,13 @@ import android.text.Html;
 import android.util.Log;
 import android.view.Display;
 
+import com.crashlytics.android.answers.Answers;
+import com.crashlytics.android.answers.CustomEvent;
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
 
+import com.crashlytics.android.Crashlytics;
+import io.fabric.sdk.android.Fabric;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -112,6 +116,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         ButterKnife.bind(this);
+        Fabric.with(this, new Crashlytics());
         Logger.addLogAdapter(new AndroidLogAdapter());
         FacebookSdk.sdkInitialize(getApplicationContext());
         AppEventsLogger.activateApp(this);
@@ -199,6 +204,7 @@ public class LoginActivity extends AppCompatActivity {
         fbLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 LoginManager.getInstance().logInWithReadPermissions(
                         LoginActivity.this,
                         Arrays.asList("user_photos", "email", "user_birthday", "public_profile")
@@ -455,6 +461,7 @@ public class LoginActivity extends AppCompatActivity {
                             userName = user.getDisplayName();
                             userPic = user.getPhotoUrl().toString();
                             userLoggedIn();
+                            onGoogleLogin();
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
@@ -471,6 +478,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void loginLinkedin() {
+
         LISessionManager.getInstance(getApplicationContext()).init(this,
                 buildScope(), new AuthListener() {
                     @Override
@@ -486,12 +494,14 @@ public class LoginActivity extends AppCompatActivity {
                                     JSONObject profileInfo = s.getResponseDataAsJson();
                                     JSONObject profilePic  = profileInfo.getJSONObject("pictureUrls");
                                     JSONArray imageUrl = profilePic.getJSONArray("values");
+                                    Log.i("Image->" , imageUrl.getString(0));
                                     Log.i("Name-> " , profileInfo.getString("formattedName"));
                                     userName = profileInfo.getString("formattedName");
                                     userEmail = profileInfo.getString("emailAddress");
-                                    userPic = profileInfo.getString("emailAddress");
+                                    userPic = imageUrl.getString(0);
                                     userLoggedIn();
-                                    Log.i("Image->" , imageUrl.getString(0));
+                                    onLinkdinLogin();
+
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
@@ -564,6 +574,7 @@ public class LoginActivity extends AppCompatActivity {
                             userName = firstName + " " + lastName;
                             userPic = Profile.getCurrentProfile().getProfilePictureUri(200, 200).toString();
                             userLoggedIn();
+                            onFbLogin();
 
 
                         } catch (JSONException e) {
@@ -579,15 +590,41 @@ public class LoginActivity extends AppCompatActivity {
 
     private void mainActivityIntent(){
         Intent mainActivityIntent = new Intent(LoginActivity.this, ProfileActivity.class);
+        mainActivityIntent.putExtras(rawData);
         startActivity(mainActivityIntent);
+        this.finish();
     }
 
     private void userLoggedIn(){
         rawData.putString("userName",userName);
         rawData.putString("userEmail",userEmail);
         rawData.putString("userPic",userPic);
+        mainActivityIntent();
 
     }
+    // TODO: Move this method and use your own event name to track your key metrics
+    public void onFbLogin() {
+        // TODO: Use your own string attributes to track common values over time
+        // TODO: Use your own number attributes to track median value over time
+        Answers.getInstance().logCustom(new CustomEvent("Authentication")
+                .putCustomAttribute("Login From", "Facebook")
+                .putCustomAttribute("Status", "true"));
+    }
+    public void onGoogleLogin() {
+        // TODO: Use your own string attributes to track common values over time
+        // TODO: Use your own number attributes to track median value over time
+        Answers.getInstance().logCustom(new CustomEvent("Authentication")
+                .putCustomAttribute("Login From", "Google")
+                .putCustomAttribute("Status", "true"));
+    }
+    public void onLinkdinLogin() {
+        // TODO: Use your own string attributes to track common values over time
+        // TODO: Use your own number attributes to track median value over time
+        Answers.getInstance().logCustom(new CustomEvent("Authentication")
+                .putCustomAttribute("Login From", "Linkdin")
+                .putCustomAttribute("Status", "true"));
+    }
+
 }
 
 

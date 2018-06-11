@@ -1,10 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
+    android:background="@color/grey_light">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:background="@color/grey_light"
+    android:id="@+id/container"
     android:orientation="vertical"
     tools:context=".ProfileActivity">
 
@@ -31,9 +38,10 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:id="@+id/userName"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="10dp"
-                android:text="Wiliam Snoe"
+                android:text="@string/sample_name"
                 android:textColor="#fff"
                 android:textSize="21sp"
                 android:textStyle="bold" />
@@ -150,7 +158,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:paddingLeft="20dp"
-                android:text="Wiliam@gmail.com"
+                android:id="@+id/userEmail"
+                android:text="@string/sample_email"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -172,7 +181,8 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:paddingLeft="20dp"
-                android:text="+266 225 225"
+                android:id="@+id/userPhone"
+                android:text="@string/sample_contact"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -186,15 +196,14 @@
             <ImageView
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                app:srcCompat="@drawable/ic_group_add_black_24dp" />
+                app:srcCompat="@drawable/karma_point" />
 
             <TextView
                 android:layout_width="wrap_content"
-
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:paddingLeft="20dp"
-                android:text="Add to group"
+                android:text="@string/your_karma_points_displayed_here"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -208,7 +217,7 @@
             <ImageView
                 android:layout_width="36dp"
                 android:layout_height="36dp"
-                app:srcCompat="@drawable/ic_forum_black_24dp" />
+                app:srcCompat="@drawable/ic_offericon" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -216,7 +225,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:paddingLeft="20dp"
-                android:text="Show all comments"
+                android:text="@string/what_can_you_offer"
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
@@ -226,8 +235,11 @@
         android:layout_height="match_parent"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="35dp"
+        android:layout_marginBottom="70sp"
+        android:id="@+id/share_it"
         android:background="@drawable/button_back"
-        android:text="Follow Me"
+        android:text="@string/invite_a_friend"
         android:textColor="#fff" />
 
 </LinearLayout>
+</ScrollView>
