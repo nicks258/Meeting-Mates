@@ -58,22 +58,17 @@ public class ProfileActivity extends AppCompatActivity {
         fabHelp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FragmentTransaction fragmentTransaction2 = getSupportFragmentManager().beginTransaction();
-                HelpFragment selectedFragment = new HelpFragment();
-                fragmentTransaction2.replace(R.id.container,selectedFragment);
-                fragmentTransaction2.addToBackStack(null)
-                        .commit();
+                Intent helpIntent = new Intent(ProfileActivity.this,HelpActivity.class);
+                startActivity(helpIntent);
             }
         });
 
         fabOffer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                FragmentTransaction fragmentTransaction2 = getSupportFragmentManager().beginTransaction();
-                OfferFragment selectedFragment = new OfferFragment();
-                fragmentTransaction2.replace(R.id.container,selectedFragment);
-                fragmentTransaction2.addToBackStack(null)
-                        .commit();
+                Intent offerIntent  = new Intent(ProfileActivity.this,OfferActivity.class);
+                startActivity(offerIntent);
+//                ProfileActivity.this.finish();
             }
         });
 

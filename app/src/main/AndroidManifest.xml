@@ -43,6 +43,7 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+
         <service
             android:name=".FirebaseService.FirebaseService"
             android:permission="com.google.android.c2dm.permission.SEND">
@@ -71,11 +72,17 @@
         <activity
             android:name=".ProfileActivity"
             android:label="@string/title_activity_profile"
-            android:theme="@style/AppTheme"/>
+            android:theme="@style/AppTheme" />
+
         <meta-data
             android:name="io.fabric.ApiKey"
-            android:value="b7833825550fb79ff9211e9a12282859cf5c8c12"
-            />
+            android:value="b7833825550fb79ff9211e9a12282859cf5c8c12" />
+
+        <activity
+            android:name=".OfferActivity"
+            android:label="@string/title_activity_offer"
+            android:theme="@style/AppTheme" />
+        <activity android:name=".HelpActivity"></activity>
     </application>
 
 </manifest>
